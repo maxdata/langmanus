@@ -69,7 +69,23 @@ class ChatRequest(BaseModel):
     search_before_planning: Optional[bool] = Field(
         False, description="Whether to search before planning"
     )
-    team_members: Optional[list] = Field(None, description="enabled team members")
+    team_members: Optional[list] = Field(default_factory=lambda: TEAM_MEMBERS, description="enabled team members")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": "Find job opportunities on reddit.com"
+                    }
+                ],
+                "debug": False,
+                "deep_thinking_mode": False,
+                "search_before_planning": False,
+                "team_members": ["researcher", "coder", "browser", "reporter"]
+            }
+        }
 
 
 @app.post("/api/chat/stream")
@@ -83,6 +99,28 @@ async def chat_endpoint(request: ChatRequest, req: Request):
 
     Returns:
         The streamed response
+
+    Example:
+        ```json
+        {
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "Find job opportunities on reddit.com"
+                }
+            ],
+            "debug": false,
+            "deep_thinking_mode": false,
+            "search_before_planning": false,
+            "team_members": ["researcher", "coder", "browser", "reporter"]
+        }
+        ```
+        
+        This example will:
+        1. Use the browser agent to navigate to Reddit
+        2. Search for job-related content and subreddits
+        3. Use the researcher agent to analyze the findings
+        4. Have the reporter agent compile a summary of job opportunities
     """
     try:
         # Convert Pydantic models to dictionaries and normalize content format
